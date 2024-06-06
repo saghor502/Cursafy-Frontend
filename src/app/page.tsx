@@ -3,24 +3,70 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import userDataService from '../services/user.service'
 import { usuario } from '@/services/interface'
-import Dropdown from '@/components/dropdown/Dropdown'
-import { isMap } from 'util/types'
+import { Select } from 'antd'
+import { Dropdown, Space } from 'antd'
 import UserLabel from '@/components/usersLabel/UserLabel'
 
 export default function Home() {
-	const [paises, setPaises] = useState<string[]>()
-	const [estados, setEstados] = useState<string[]>([])
-	const [competencias, setCompetencias] = useState<string[]>([])
-	const [usuarios, setUsuarios] = useState<usuario[]>([])
-
 	const [loading, isLoading] = useState(false)
 
-	let selectedPais: string = ''
-	let selectedEstados: string[] = []
-	let selectedCompetencias: string[] = []
-	let selectedNivelEducativo: string = ''
+	const [paises, setPaises] = useState<string[]>([])
+	const [estados, setEstados] = useState<string[]>([])
+	const [competencias, setCompetencias] = useState<string[]>([])
+	const [niveles, setNiveles] = useState<string[]>([])
+
+	const [usuarios, setUsuarios] = useState<usuario[]>([])
+
+	const [selectedPais, setSPais] = useState<string>()
+	const [selectedEstados, setSEstados] = useState<string[]>([])
+	const [selectedCompetencias, setSComp] = useState<string[]>([])
+	const [selectedNivelEducativo, setSNivel] = useState<string>()
 
 	const [isMexican, setIsMexican] = useState(false)
+
+	const handleSubmit = () => {
+		isLoading(true)
+		selectedPais
+			? selectedCompetencias.length != 0
+				? selectedNivelEducativo
+					? isMexican
+						? selectedEstados.length != 0
+							? userDataService
+									.getUsuariosMexicanos(
+										selectedPais,
+										selectedEstados,
+										selectedCompetencias,
+										selectedNivelEducativo
+									)
+									.then((response) => {
+										setUsuarios(response.data)
+									})
+									.catch(() => {
+										alert(
+											'Error intentando mandar los datos, porfavor intente más tarde.'
+										)
+									})
+							: alert('Porfavor señale los estados requeridos.')
+						: userDataService
+								.getUsuarios(
+									selectedPais,
+									selectedCompetencias,
+									selectedNivelEducativo
+								)
+								.then((response) => {
+									setUsuarios(response.data)
+								})
+								.catch(() => {
+									alert(
+										'Error intentando mandar los datos, porfavor intente más tarde.'
+									)
+								})
+					: alert('Porfavor señale el nivel educativo')
+				: alert('Porfavor señale las competencias requeridas.')
+			: alert('Porfavor ingrese un país.')
+
+		isLoading(false)
+	}
 
 	useEffect(() => {
 		userDataService
@@ -50,6 +96,33 @@ export default function Home() {
 			.catch((error) => {
 				console.log(error)
 			})
+		userDataService
+			.getNiveles()
+			.then((response) => {
+				setNiveles(response.data)
+				return
+			})
+			.catch((error) => {
+				console.log(error)
+			})
+
+		setPaises(['Mexico', 'USA'])
+		setEstados(['Chihuahua', 'Durango', 'Sonora', 'Sinaloa', 'Coahuila'])
+		setCompetencias([
+			'Mate',
+			'Ingles',
+			'Español',
+			'Ciencias Naturales',
+			'Liderazgo',
+		])
+		setNiveles([
+			'Primaria',
+			'Secundaria',
+			'Bachillerato',
+			'Profesional',
+			'Maestría',
+			'Doctorado',
+		])
 	}, [])
 
 	useEffect(() => {
@@ -60,140 +133,105 @@ export default function Home() {
 		}
 	}, [selectedPais])
 
-	const handleCountry = (value: string) => {
-		selectedPais = value
-	}
-	const handleStates = (values: string[]) => {
-		selectedEstados = values
-	}
-	const handleCompetencias = (values: string[]) => {
-		selectedCompetencias = values
-	}
-	const handleLevel = (value: string) => {
-		selectedNivelEducativo = value
-	}
-
-	const handleSubmit = () => {
-		isLoading(true)
-		selectedPais
-			? selectedCompetencias
-				? selectedNivelEducativo
-					? isMexican
-						? selectedEstados
-							? userDataService
-									.getUsuarios(
-										selectedPais,
-										selectedCompetencias,
-										selectedNivelEducativo
-									)
-									.then((response) => {
-										setUsuarios(response.data)
-									})
-									.catch(() => {
-										alert(
-											'Error found while sending data: Please try again later.'
-										)
-									})
-							: userDataService
-									.getUsuariosMexicanos(
-										selectedPais,
-										selectedEstados,
-										selectedCompetencias,
-										selectedNivelEducativo
-									)
-									.then((response) => {
-										setUsuarios(response.data)
-									})
-									.catch(() => {
-										alert(
-											'Error found while sending data: Please try again later.'
-										)
-									})
-						: alert('Please provide a State')
-					: alert('Please provide an Education Level')
-				: alert('Please provide Selected Competencies')
-			: alert('Please provide a Country')
-
-		isLoading(false)
-	}
 	return (
 		<main>
 			<div className="navbar">
 				<div className="link">
-					<Link href="https://cursafy.com">
+					<Link href="../">
 						<img src="./cursafyLogo.png" alt="Coursafy Logo" />
 					</Link>
 				</div>
 			</div>
 
 			<div className="searchbar">
-				<Dropdown
-					title="Pais"
-					value={selectedPais ? selectedPais : 'Selecciona un país.'}
-					options={['Mexico', 'Canada', 'USA']}
-					handleValue={handleCountry}
-				/>
-				<Dropdown
-					title="Estado"
-					hidden={!isMexican}
-					value={
-						selectedEstados.length !== 0
-							? selectedEstados.length == 1
-								? selectedEstados[0]
-								: 'Multiples estados seleccionados.'
-							: 'Selecciona un estado.'
-					}
-					options={estados}
-					multipleOption
-					handleMultipleValue={handleStates}
-				/>
-				<Dropdown
-					title="Cursos"
-					value={
-						selectedCompetencias.length !== 0
-							? selectedCompetencias.length == 1
-								? selectedCompetencias[0]
-								: 'Multiples cursos seleccionados.'
-							: 'Selecciona al menos un curso.'
-					}
-					options={competencias}
-					multipleOption
-				/>
-				<Dropdown
-					title="Competencias"
-					value={
-						selectedCompetencias.length !== 0
-							? selectedCompetencias.length == 1
-								? selectedCompetencias[0]
-								: 'Multiples competencias seleccionadas.'
-							: 'Selecciona al menos una competencia.'
-					}
-					options={competencias}
-					multipleOption
-					handleMultipleValue={handleCompetencias}
-				/>
-				<Dropdown
-					title="Nivel Educativo"
-					value={
-						selectedNivelEducativo
-							? selectedNivelEducativo
-							: 'Selecciona un nivel educativo.'
-					}
-					handleValue={handleLevel}
-				/>
-				<div>
-					<button type="button" onClick={handleSubmit} className="button">
-						Generate
-					</button>
-					<button
-						type="button"
-						onClick={handleSubmit}
-						className="button"
-						disabled
+				<div className="searchbar-item">
+					<Select
+						size="large"
+						style={{ width: '100%' }}
+						placeholder="Pais"
+						onChange={(selectedValue) => {
+							setSPais(selectedValue)
+						}}
 					>
-						Export
-					</button>
+						{paises.map((pais, index) => {
+							return (
+								<Select.Option key={index} value={pais}>
+									{pais}
+								</Select.Option>
+							)
+						})}
+					</Select>
 				</div>
+				<div className="searchbar-item">
+					<Select
+						size="large"
+						style={{ width: '100%' }}
+						mode="multiple"
+						placeholder="Estados"
+						disabled={!isMexican}
+						onChange={(selectedValues) => {
+							setSEstados(selectedValues)
+						}}
+					>
+						{estados.map((estado, index) => {
+							return (
+								<Select.Option key={index} value={estado}>
+									{estado}
+								</Select.Option>
+							)
+						})}
+					</Select>
+				</div>
+				<div className="searchbar-item">
+					<Select
+						size="large"
+						style={{ width: '100%' }}
+						mode="multiple"
+						placeholder="Competencias"
+						onChange={(selectedValues) => {
+							setSComp(selectedValues)
+						}}
+					>
+						{competencias.map((competencia, index) => {
+							return (
+								<Select.Option key={index} value={competencia}>
+									{competencia}
+								</Select.Option>
+							)
+						})}
+					</Select>
+				</div>
+				<div className="searchbar-item">
+					<Select
+						size="large"
+						style={{ width: '100%' }}
+						placeholder="Nivel Educativo"
+						onChange={(selectedValue) => {
+							setSNivel(selectedValue)
+						}}
+					>
+						{niveles.map((nivel, index) => {
+							return (
+								<Select.Option key={index} value={nivel}>
+									{nivel}
+								</Select.Option>
+							)
+						})}
+					</Select>
+				</div>
+			</div>
+			<div className="searchbar">
+				<button type="button" onClick={handleSubmit} className="button">
+					Generate
+				</button>
+				<button
+					type="button"
+					onClick={handleSubmit}
+					className="button"
+					disabled
+				>
+					Export
+				</button>
 			</div>
 
 			<div className="labelContainer">
@@ -204,30 +242,6 @@ export default function Home() {
 						</div>
 					) : (
 						<div>
-							<UserLabel
-								id={0}
-								name={'Ángel Saghir Rodríguez Fernández'}
-								email={'angel.saghir.rodriguez@hotmail.com'}
-								phone={'+52(1) 614-178-8130'}
-								competencias={['mate', 'español']}
-							/>
-							<UserLabel
-								id={0}
-								name={'Usuario 1'}
-								email={'usuario1@cursafy.com'}
-								phone={'+52(1) 614-444-4444'}
-								competencias={[
-									'mate',
-									'español',
-									'inglés',
-									'español',
-									'español',
-									'español',
-									'español',
-									'español',
-									'español',
-								]}
-							/>
 							{usuarios.map((usuario, index) => (
 								<UserLabel
 									id={index}

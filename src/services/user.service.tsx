@@ -1,16 +1,21 @@
 import axios from 'axios'
 import http from './http-commons'
-import type { usuario} from './interface'
 
 class UserDataService {
 	getPaises() {
 		return http.get('/paises')
+	}
+	getNiveles() {
+		return http.get('/niveles')
 	}
 	getEstados() {
 		return http.get('/estados')
 	}
 	getCompetencias() {
 		return http.get('/competencias')
+	}
+	getCursos() {
+		return http.get('/cursos')
 	}
 	getUsuarios(pais: string, competencias: string[], niveleducativo: string) {
 		return http.get('/usuarios', {

@@ -18,7 +18,7 @@ export default function ({
 }: UserLabelProps) {
 	return (
 		<div className="userLabelContainer" id={id ? id.toString() : ''}>
-			<div style={{ width: '70%', height: '100px', display: 'inline-grid' }}>
+			<div style={{ width: '70%', display: 'inline-grid' }}>
 				<p style={{ fontSize: 'xx-large' }}>{name}</p>
 				<div>
 					<p
@@ -50,7 +50,7 @@ export default function ({
 					height: '100px',
 				}}
 			>
-				<div style={{ overflowY: 'scroll' }}>
+				<div style={{ overflowY: 'scroll', height: '100%' }}>
 					{competencias?.map((competencia, index) => (
 						<p id={index.toString()} style={{ fontSize: 'x-large' }}>
 							{competencia}
