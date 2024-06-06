@@ -242,12 +242,12 @@ export default function Home() {
 						</div>
 					) : (
 						<div>
+							<UserLabel name={'usuario.nombre'} porcentaje={'50%'} />
 							{usuarios.map((usuario, index) => (
 								<UserLabel
 									id={index}
 									name={usuario.nombre}
-									email={usuario.email}
-									phone={usuario.telefono}
+									porcentaje={usuario.porcentaje}
 								/>
 							))}
 						</div>

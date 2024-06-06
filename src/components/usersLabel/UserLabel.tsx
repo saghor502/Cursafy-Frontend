@@ -2,44 +2,16 @@ import { ReactNode } from 'react'
 import './UserLabel.css'
 
 interface UserLabelProps {
-	name?: string
-	email?: string
-	phone?: string
+	name?: String
 	id?: number
-	competencias?: string[]
+	porcentaje?: string
 }
 
-export default function ({
-	name,
-	email,
-	phone,
-	id,
-	competencias,
-}: UserLabelProps) {
+export default function ({ name, id, porcentaje }: UserLabelProps) {
 	return (
 		<div className="userLabelContainer" id={id ? id.toString() : ''}>
 			<div style={{ width: '70%', display: 'inline-grid' }}>
 				<p style={{ fontSize: 'xx-large' }}>{name}</p>
-				<div>
-					<p
-						style={{
-							fontSize: 'x-large',
-							display: 'inline-grid',
-							padding: '10px',
-						}}
-					>
-						{email}
-					</p>
-					<p
-						style={{
-							fontSize: 'x-large',
-							display: 'inline-grid',
-							padding: '10px',
-						}}
-					>
-						{phone}
-					</p>
-				</div>
 			</div>
 
 			<div
@@ -50,13 +22,16 @@ export default function ({
 					height: '100px',
 				}}
 			>
-				<div style={{ overflowY: 'scroll', height: '100%' }}>
+				<div style={{ height: '100%' }}>
+					<p style={{ fontSize: 'xx-large' }}>{porcentaje}</p>
+				</div>
+				{/* <div style={{ overflowY: 'scroll', height: '100%' }}>
 					{competencias?.map((competencia, index) => (
 						<p id={index.toString()} style={{ fontSize: 'x-large' }}>
 							{competencia}
 						</p>
 					))}
-				</div>
+				</div> */}
 			</div>
 		</div>
 	)
