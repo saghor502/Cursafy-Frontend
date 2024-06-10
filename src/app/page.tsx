@@ -4,8 +4,14 @@ import Link from 'next/link'
 import userDataService from '../services/user.service'
 import { usuario } from '@/services/interface'
 import { Select } from 'antd'
-import { Dropdown, Space } from 'antd'
 import UserLabel from '@/components/usersLabel/UserLabel'
+import {
+	Modal,
+	ModalBody,
+	ModalContent,
+	ModalHeader,
+	useDisclosure,
+} from '@nextui-org/modal'
 
 export default function Home() {
 	const [loading, isLoading] = useState(false)
@@ -13,55 +19,59 @@ export default function Home() {
 	const [paises, setPaises] = useState<string[]>([])
 	const [estados, setEstados] = useState<string[]>([])
 	const [competencias, setCompetencias] = useState<string[]>([])
-	const [niveles, setNiveles] = useState<string[]>([])
 
 	const [usuarios, setUsuarios] = useState<usuario[]>([])
+	const [selectedUser, setSelectedUser] = useState<usuario>()
 
 	const [selectedPais, setSPais] = useState<string>()
 	const [selectedEstados, setSEstados] = useState<string[]>([])
 	const [selectedCompetencias, setSComp] = useState<string[]>([])
-	const [selectedNivelEducativo, setSNivel] = useState<string>()
 
 	const [isMexican, setIsMexican] = useState(false)
+
+	const { isOpen, onOpen, onClose } = useDisclosure()
+
+	const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
+		if ((event.target as Element).classList.contains('overlay')) {
+			onClose()
+		}
+	}
+
+	useEffect(() => {
+		onOpen()
+	}, [selectedUser])
 
 	const handleSubmit = () => {
 		isLoading(true)
 		selectedPais
 			? selectedCompetencias.length != 0
-				? selectedNivelEducativo
-					? isMexican
-						? selectedEstados.length != 0
-							? userDataService
-									.getUsuariosMexicanos(
-										selectedPais,
-										selectedEstados,
-										selectedCompetencias,
-										selectedNivelEducativo
-									)
-									.then((response) => {
-										setUsuarios(response.data)
-									})
-									.catch(() => {
-										alert(
-											'Error intentando mandar los datos, porfavor intente más tarde.'
-										)
-									})
-							: alert('Porfavor señale los estados requeridos.')
-						: userDataService
+				? isMexican
+					? selectedEstados.length != 0
+						? userDataService
 								.getUsuarios(
 									selectedPais,
-									selectedCompetencias,
-									selectedNivelEducativo
+									selectedEstados,
+									selectedCompetencias
 								)
 								.then((response) => {
-									setUsuarios(response.data)
+									setUsuarios(response.data.usuarios)
 								})
 								.catch(() => {
 									alert(
 										'Error intentando mandar los datos, porfavor intente más tarde.'
 									)
 								})
-					: alert('Porfavor señale el nivel educativo')
+						: alert('Porfavor señale los estados requeridos.')
+					: userDataService
+							.getUsuarios(selectedPais, selectedEstados, selectedCompetencias)
+							.then((response) => {
+								setUsuarios(response.data.usuarios)
+							})
+							.catch(() => {
+								alert(
+									'Error intentando mandar los datos, porfavor intente más tarde.'
+								)
+							})
 				: alert('Porfavor señale las competencias requeridas.')
 			: alert('Porfavor ingrese un país.')
 
@@ -72,7 +82,11 @@ export default function Home() {
 		userDataService
 			.getPaises()
 			.then((response) => {
-				setPaises(response.data)
+				let temp = []
+				for (var i in response.data.Paises) {
+					temp.push(response.data.Paises[i].pais)
+				}
+				setPaises(temp)
 				return
 			})
 			.catch((error) => {
@@ -81,7 +95,11 @@ export default function Home() {
 		userDataService
 			.getEstados()
 			.then((response) => {
-				setEstados(response.data)
+				let temp = []
+				for (var i in response.data.Estados) {
+					temp.push(response.data.Estados[i].estado)
+				}
+				setEstados(temp)
 				return
 			})
 			.catch((error) => {
@@ -90,39 +108,16 @@ export default function Home() {
 		userDataService
 			.getCompetencias()
 			.then((response) => {
-				setCompetencias(response.data)
+				let temp = []
+				for (var i in response.data.Competencias) {
+					temp.push(response.data.Competencias[i].comp)
+				}
+				setCompetencias(temp)
 				return
 			})
 			.catch((error) => {
 				console.log(error)
 			})
-		userDataService
-			.getNiveles()
-			.then((response) => {
-				setNiveles(response.data)
-				return
-			})
-			.catch((error) => {
-				console.log(error)
-			})
-
-		setPaises(['Mexico', 'USA'])
-		setEstados(['Chihuahua', 'Durango', 'Sonora', 'Sinaloa', 'Coahuila'])
-		setCompetencias([
-			'Mate',
-			'Ingles',
-			'Español',
-			'Ciencias Naturales',
-			'Liderazgo',
-		])
-		setNiveles([
-			'Primaria',
-			'Secundaria',
-			'Bachillerato',
-			'Profesional',
-			'Maestría',
-			'Doctorado',
-		])
 	}, [])
 
 	useEffect(() => {
@@ -135,6 +130,7 @@ export default function Home() {
 
 	return (
 		<main>
+			{isOpen && <div className="overlay" onClick={handleOverlayClick}></div>}
 			<div className="navbar">
 				<div className="link">
 					<Link href="../">
@@ -147,7 +143,13 @@ export default function Home() {
 				<div className="searchbar-item">
 					<Select
 						size="large"
-						style={{ width: '100%' }}
+						style={{
+							width: '100%',
+							height: '70px',
+							overflow: 'hidden',
+							backgroundColor: 'white',
+							borderRadius: '10px',
+						}}
 						placeholder="Pais"
 						onChange={(selectedValue) => {
 							setSPais(selectedValue)
@@ -165,7 +167,13 @@ export default function Home() {
 				<div className="searchbar-item">
 					<Select
 						size="large"
-						style={{ width: '100%' }}
+						style={{
+							width: '100%',
+							height: '70px',
+							overflow: 'hidden',
+							backgroundColor: isMexican ? 'white' : 'transparent',
+							borderRadius: '10px',
+						}}
 						mode="multiple"
 						placeholder="Estados"
 						disabled={!isMexican}
@@ -185,7 +193,13 @@ export default function Home() {
 				<div className="searchbar-item">
 					<Select
 						size="large"
-						style={{ width: '100%' }}
+						style={{
+							width: '100%',
+							height: '70px',
+							overflow: 'hidden',
+							backgroundColor: 'white',
+							borderRadius: '10px',
+						}}
 						mode="multiple"
 						placeholder="Competencias"
 						onChange={(selectedValues) => {
@@ -201,36 +215,10 @@ export default function Home() {
 						})}
 					</Select>
 				</div>
-				<div className="searchbar-item">
-					<Select
-						size="large"
-						style={{ width: '100%' }}
-						placeholder="Nivel Educativo"
-						onChange={(selectedValue) => {
-							setSNivel(selectedValue)
-						}}
-					>
-						{niveles.map((nivel, index) => {
-							return (
-								<Select.Option key={index} value={nivel}>
-									{nivel}
-								</Select.Option>
-							)
-						})}
-					</Select>
-				</div>
 			</div>
 			<div className="searchbar">
 				<button type="button" onClick={handleSubmit} className="button">
 					Generate
-				</button>
-				<button
-					type="button"
-					onClick={handleSubmit}
-					className="button"
-					disabled
-				>
-					Export
 				</button>
 			</div>
 
@@ -243,16 +231,70 @@ export default function Home() {
 					) : (
 						<div>
 							{usuarios.map((usuario, index) => (
-								<UserLabel
-									id={index}
-									name={usuario.nombre}
-									email={usuario.email}
-									phone={usuario.telefono}
-								/>
+								<div onClick={() => setSelectedUser(usuario)}>
+									<UserLabel
+										id={index}
+										name={usuario.nombre}
+										email={usuario.email}
+										telefono={usuario.telefono}
+										porcentaje={usuario.porcentaje}
+									/>
+								</div>
 							))}
 						</div>
 					)}
 				</div>
+			</div>
+			<div>
+				<Modal backdrop="opaque" isOpen={isOpen} className="customModal">
+					<ModalContent className="customModalContent">
+						<>
+							<ModalHeader className="flex flex-col gap-1">
+								<p style={{ fontSize: 'x-large', display: 'inline-grid' }}>
+									{selectedUser?.nombre}
+								</p>
+							</ModalHeader>
+							<ModalBody>
+								<div>
+									<p style={{ display: 'inline-grid', paddingRight: '50px' }}>
+										{selectedUser?.telefono}
+									</p>
+									<p style={{ display: 'inline-grid' }}>
+										{selectedUser?.email}
+									</p>
+								</div>
+								<div
+									style={{
+										overflowY: 'scroll',
+										height: '100px',
+										padding: '25px',
+									}}
+								>
+									{selectedUser?.cursos.map((curso, index) => (
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'flex-end',
+											}}
+										>
+											<p
+												id={index.toString()}
+												style={{
+													padding: '10px',
+													fontWeight: 'bolder',
+													fontSize: 'large',
+												}}
+											>
+												{index}
+											</p>
+											<p id={index.toString()}>{curso.curso}</p>
+										</div>
+									))}
+								</div>
+							</ModalBody>
+						</>
+					</ModalContent>
+				</Modal>
 			</div>
 		</main>
 	)

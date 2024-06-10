@@ -1,0 +1,75 @@
+import { ReactNode } from 'react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from '@nextui-org/react';
+import './UserLabel.css';
+
+interface UserLabelProps {
+  name?: string;
+  id?: number;
+  porcentaje?: string;
+}
+
+const UserLabel: React.FC<UserLabelProps> = ({ name, id, porcentaje }) => {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  return (
+    <div className="userLabelContainer" id={id ? id.toString() : ''}>
+      <div style={{ width: '70%', display: 'inline-grid' }}>
+        <p style={{ fontSize: 'xx-large' }}>{name}</p>
+      </div>
+
+      <div
+        style={{
+          width: '30%',
+          display: 'inline-grid',
+          textAlign: 'center',
+          height: '100px',
+        }}
+      >
+        <div style={{ height: '100%' }}>
+          <p style={{ fontSize: 'xx-large' }}>{porcentaje}</p>
+        </div>
+
+        <Button onPress={onOpen}>Open Modal</Button>
+
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            {(onClose: () => void) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">Modal Title</ModalHeader>
+                <ModalBody>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Nullam pulvinar risus non risus hendrerit venenatis.
+                    Pellentesque sit amet hendrerit risus, sed porttitor quam.
+                  </p>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Nullam pulvinar risus non risus hendrerit venenatis.
+                    Pellentesque sit amet hendrerit risus, sed porttitor quam.
+                  </p>
+                  <p>
+                    Magna exercitation reprehenderit magna aute tempor cupidatat consequat elit
+                    dolor adipisicing. Mollit dolor eiusmod sunt ex incididunt cillum quis.
+                    Velit duis sit officia eiusmod Lorem aliqua enim laboris do dolor eiusmod.
+                    Et mollit incididunt nisi consectetur esse laborum eiusmod pariatur
+                    proident Lorem eiusmod et. Culpa deserunt nostrud ad veniam.
+                  </p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Close
+                  </Button>
+                  <Button color="primary" onPress={onClose}>
+                    Action
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+      </div>
+    </div>
+  );
+};
+
+export default UserLabel;
